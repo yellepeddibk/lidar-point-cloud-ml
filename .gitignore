@@ -1,0 +1,28 @@
+# Raw / derived datasets
+datasets/*
+!datasets/.gitkeep
+
+# LiDAR / point-cloud data
+*.las
+*.laz
+*.ply
+*.pcd
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Generated model artifacts
+*.pkl
+*.joblib
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
