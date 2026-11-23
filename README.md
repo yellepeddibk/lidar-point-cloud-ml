@@ -4,10 +4,13 @@ Undergraduate research project at Iowa State University exploring geometric feat
 
 ## Project Work
 
-- Centered and analyzed 5,000 LiDAR object point-cloud frames (about 1.97 million points) from five source folders, 1,000 frames per folder
-- Computed 8 geometric features per frame: k-nearest-neighbor density (mean and standard deviation), eigenvalue-based linearity, planarity, and sphericity, and PCA explained-variance ratios (PC1 to PC3)
-- Trained SVM and random forest classifiers to predict which source folder a frame came from (5 classes), reaching about 82% test accuracy on a random 20% hold-out
-- Began a voxel-based 3D ResNet classifier in PyTorch; this prototype was never trained
+- Centered and analyzed 5,000 LiDAR object point-cloud frames containing about 1.97 million points. The source data has 5,005 frames available (1,001 in each of five folders); the scripts analyze the first 1,000 frames of each folder.
+- Computed 8 geometric features per frame:
+  - Point density: mean and standard deviation of each point's neighbor count within a fixed radius (0.1)
+  - Local shape: linearity, planarity, and sphericity from the covariance eigenvalues of each point's 10 nearest neighbors, averaged over the frame
+  - Global shape: PCA explained-variance ratios (PC1 to PC3)
+- Trained SVM and random forest classifiers to predict each frame's source-folder label (5 classes), reaching 82.3% (SVM) and 82.0% (random forest) accuracy on a random 1,000-frame test split
+- Started a voxel-based 3D ResNet classifier in PyTorch; it is an unfinished, untrained prototype
 
 ## Repository Structure
 
@@ -17,7 +20,7 @@ lidar-point-cloud-ml/
 ├── figures/                  # Analysis and experiment figures
 ├── src/
 │   ├── analyze_stats.py
-│   ├── classification.py
+│   ├── classification.py     # Unfinished, untrained 3D ResNet prototype (not runnable)
 │   └── point_cloud_svm_rf.py
 ├── .gitignore
 ├── README.md
@@ -36,9 +39,9 @@ python -m pip install -r requirements.txt
 
 ## Analysis Scripts
 
-Run the scripts from the repository root; they read data from `./datasets`.
+Run the scripts from the repository root; they read data from `./datasets`. Each script analyzes frames `000000` to `000999` in each of the five folders.
 
-Per-frame statistics (centroid-centered positions, density, PCA, local surface features) with a comparison plot across the five folders:
+Per-frame statistics (centroid-centered positions, fixed-radius density, PCA, 10-nearest-neighbor surface features) with a comparison plot across the five folders:
 
 ```bash
 python src/analyze_stats.py
@@ -50,7 +53,9 @@ Feature extraction plus SVM and random forest classification, with printed class
 python src/point_cloud_svm_rf.py
 ```
 
-`src/classification.py` is an unfinished prototype of a voxel-based 3D ResNet. It does not currently run: its main block references an undefined variable, the training code is commented out, and its labels are placeholders.
+### Unfinished prototype
+
+`src/classification.py` contains an unfinished, untrained prototype of a voxel-based 3D ResNet. It is not runnable: its main block references an undefined variable, the training code is commented out, and its labels are placeholders. No results come from it.
 
 ## Results
 
@@ -64,17 +69,17 @@ Figure 2: Random forest feature importances. The eigenvalue-based shape features
 
 ![Figure 3](figures/figure_3.png)
 
-Figure 3: Terminal output from `point_cloud_svm_rf.py` on 5,000 frames, with 1,000 held out for testing.
+Figure 3: Terminal output from `point_cloud_svm_rf.py` on the 5,000 analyzed frames, evaluated on a random 1,000-frame test split. The prediction target is each frame's source-folder label.
 
 | Model | Train accuracy | Test accuracy |
 | --- | --- | --- |
-| SVM (RBF kernel) | 0.8455 | 0.8230 |
-| Random forest | 1.0000 | 0.8200 |
+| SVM (RBF kernel) | 84.55% | 82.30% |
+| Random forest | 100.00% | 82.00% |
 
 ## Limitations
 
-- Classification labels are source folders, not object categories. What the five folders represent is not documented.
-- The train/test split is random across consecutive frames, which are strongly correlated (see Figure 1), so test accuracy is likely optimistic.
+- The models predict source-folder labels, not object categories. What the five folders represent is not documented.
+- The 1,000-frame test split is drawn at random, so nearby frames, which may be correlated, can fall in both the training and test sets. This evaluation does not establish generalization to new scenes.
 - The random forest fits the training data perfectly, which indicates overfitting.
 - Results are recorded only as the figures above; no run logs or trained models were saved.
 - Dependencies in `requirements.txt` are not pinned.
